@@ -1,6 +1,6 @@
 #include "pch.h"
-#include "tensor.h"
-#include "matrix.h"
+#include "vector.h"
+#include "matrix_.h"
 
 int main(int argc, char** argv) {
     using namespace std;
@@ -14,9 +14,12 @@ int main(int argc, char** argv) {
 
     Matrix<double> v1{{1, 2, 3}};
 
-    vector<double> v2{1,2,3,4,5,6,7,8,9};
+    Vector<double> v2{1,2,3,4,5};
+    Vector<double> v3{5,4,3,2,1};
 
     Matrix<double> m6(3, 3);
+    Matrix<double> m7;
+
     
     cout << m6 << endl;
 
@@ -29,5 +32,13 @@ int main(int argc, char** argv) {
         *iter = 2.;
 
     cout << m6 << endl;
+    cout << m6.diag() << endl;
+
+    cin >> m7;
+
+    cout << m7 << endl;
+
+    cout << v2 << endl;
+    cout << v2.size() << endl;
     return 0;
 }
