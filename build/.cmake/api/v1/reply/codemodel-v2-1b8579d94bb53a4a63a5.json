@@ -1,0 +1,60 @@
+{
+	"configurations" : 
+	[
+		{
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"jsonFile" : "directory-.-Debug-d0094a50bb2071803777.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.0.0"
+					},
+					"projectIndex" : 0,
+					"source" : ".",
+					"targetIndexes" : 
+					[
+						0
+					]
+				}
+			],
+			"name" : "Debug",
+			"projects" : 
+			[
+				{
+					"directoryIndexes" : 
+					[
+						0
+					],
+					"name" : "myLib",
+					"targetIndexes" : 
+					[
+						0
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 0,
+					"id" : "field::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-field-Debug-7c74aa5839d33e03dd3d.json",
+					"name" : "field",
+					"projectIndex" : 0
+				}
+			]
+		}
+	],
+	"kind" : "codemodel",
+	"paths" : 
+	{
+		"build" : "C:/Users/Jiyong_choi/OneDrive - MPMC@Yonsei/MPMC_jiyong/1. Project/Internal/Personal/MyCodes/myLib/build",
+		"source" : "C:/Users/Jiyong_choi/OneDrive - MPMC@Yonsei/MPMC_jiyong/1. Project/Internal/Personal/MyCodes/myLib"
+	},
+	"version" : 
+	{
+		"major" : 2,
+		"minor" : 5
+	}
+}
