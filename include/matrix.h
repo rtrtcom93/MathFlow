@@ -7,7 +7,9 @@
 template<typename T>
 class Matrix {
 protected:
-    Vector<Vector<T>> mat;
+    Vector<T> mat;
+    size_t rows;
+    size_t cols;
 
 public :
     //Overloaded consturctors
@@ -40,8 +42,10 @@ public :
     bool operator!=(const Matrix<T> &rhs) const;
 
     //Accessor operators
-    Vector<T> &operator[](size_t index);
-    const Vector<T>& operator[](size_t index) const;
+    T& operator()(size_t row, size_t col);
+    const T& operator()(size_t r, size_t c) const;
+    T* operator[](size_t row);
+    const T* operator[](size_t row) const;
     
     //Overloaded insertion operator
     template<typename U>
@@ -91,11 +95,16 @@ public :
     const T& at(size_t row, size_t col) const;
     const Matrix<T>& get_mat() const;
 
+    typename std::vector<T>::iterator begin();
+    typename std::vector<T>::iterator end();
+    typename std::vector<T>::const_iterator begin() const;
+    typename std::vector<T>::const_iterator end() const;
+
     typename std::vector<T>::iterator row_begin(size_t row);
     typename std::vector<T>::iterator row_end(size_t row);
     typename std::vector<T>::const_iterator row_begin(size_t row) const;
     typename std::vector<T>::const_iterator row_end(size_t row) const;
-    
+
     class ColIterator {
     private:
         Matrix<T>& mat_ref;  // Matrix 객체에 대한 참조
@@ -308,7 +317,7 @@ public :
         }
         return ConstColIterator(*this, col, this->nrow());  // 마지막 행 다음
     }
-
+    
     //Mathematical implementation
     Matrix<T> transpose() const;
     Vector<T> diag() const;

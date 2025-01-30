@@ -5,57 +5,85 @@
 //Default constructors
 template<typename T> 
 Matrix<T>::Matrix() 
-    : mat() {
+    : mat(), rows(0), cols(0) {
         //std::cout << "Default constructors" << std::endl;
     }
 
 template<typename T> 
 Matrix<T>::Matrix(size_t nrow) 
-    : mat(nrow, Vector<T>(1)) {
+    : mat(nrow*1), rows(nrow), cols(1) {
         //std::cout << "Initialize with size" << std::endl;
     } 
 
 template<typename T> 
 Matrix<T>::Matrix(size_t nrow, size_t ncol) 
-    : mat(nrow, Vector<T>(ncol)) {
+    : mat(nrow*ncol), rows(nrow), cols(ncol) {
         //std::cout << "Initialize with size" << std::endl;
     } 
 
 template<typename T> 
 Matrix<T>::Matrix(size_t nrow, size_t ncol, T init_val) 
-    : mat(nrow, Vector<T>(ncol, init_val)) {
+    : mat(nrow*ncol, init_val), rows(nrow), cols(ncol) {
         //std::cout << "Initialize with size and list" << std::endl;
     }
 
 template<typename T> 
-Matrix<T>::Matrix(std::initializer_list<std::initializer_list<T>> init_val) 
-    : mat(init_val.size()) {
-        size_t i{0};
-        for (const auto& row : init_val) 
-            mat[i++] = row;
-        // std::cout << "Initialize with list" << std::endl;
+Matrix<T>::Matrix(std::initializer_list<std::initializer_list<T>> init_val) {
+    rows = init_val.size();
+    if (rows == 0) {
+        cols = 0;
+        return;
     }
+    cols = init_val.begin()->size();
+    for (auto &row : init_val) {
+        if (row.size() != cols) {
+            throw std::invalid_argument("Ragged initializer_list not allowed.");
+        }
+    }
+    this->mat = Vector<T>(rows * cols);
+    size_t idx = 0;
+    for (auto &row_list : init_val) { 
+        for (auto &val : row_list) {
+            this->mat[idx++] = val;
+        }
+    }
+    // std::cout << "Initialize with initializer_list" << std::endl;
+}
     
 template<typename T> 
-Matrix<T>::Matrix(std::vector<std::vector<T>> init_vec) 
-    : mat(init_vec.size()) {
-        size_t i{0};
-        for (const auto& row : init_vec)
-            mat[i++] = std::move(Vector<T>(row)) ;
-        // std::cout << "Initialize with vector" << std::endl;
+Matrix<T>::Matrix(std::vector<std::vector<T>> init_vec) {
+    rows == init_vec.size();
+    if (rows == 0) {
+        cols = 0;
+        return;
     }
+    cols = init_vec[0].size();
+    for (auto &row : init_vec) {
+        if (row.size() != cols) {
+            throw std::invalid_argument("Ragged initializer_list not allowed.");
+        }
+    }
+    this->mat = Vector<T>(rows * cols);
+    size_t idx = 0;
+    for (auto &row_list : init_vec) { 
+        for (auto &val : row_list) {
+            this->mat[idx++] = val;
+        }
+    }
+    // std::cout << "Initialize with vector" << std::endl;
+}
 
 //Copy constructor
 template<typename T> 
 Matrix<T>::Matrix(const Matrix<T> &source) 
-    : mat(source.mat) {
+    : mat(source.mat), rows(source.rows), cols(source.cols) {
         // std::cout << "Copy constructor - deep" << std::endl;
     }
 
 //Move constructor
 template<typename T> 
 Matrix<T>::Matrix(Matrix<T> &&source) noexcept
-    : mat(std::move(source.mat)) {}
+    : mat(std::move(source.mat)), rows(source.rows), cols(source.cols) {}
     
 //Destructor
 template<typename T> 
@@ -68,7 +96,9 @@ Matrix<T>& Matrix<T>::operator=(const Matrix<T> &rhs) {
     //std::cout << "Copy assignment" << std::endl;
     if (this==&rhs) 
         return *this;
-    this->mat = rhs.mat;
+    this->mat  = rhs.mat;
+    this->rows = rhs.rows;
+    this->cols = rhs.cols;
     return *this;
 }
     
@@ -78,7 +108,9 @@ Matrix<T>& Matrix<T>::operator=(Matrix<T> &&rhs) {
     // std::cout << "Move assignment" << std::endl;
     if(this==&rhs)
         return *this;
-    mat = std::move(rhs.mat); //Copy reference value and Transfer of ownership
+    this->mat  = std::move(rhs.mat); //Copy reference value and Transfer of ownership
+    this->rows = rhs.rows;
+    this->cols = rhs.cols;
     return *this;
 }
 
@@ -102,23 +134,45 @@ bool Matrix<T>::operator!=(const Matrix<T> &rhs) const {
 
 //Accessor operators
 template<typename T>
-Vector<T>& Matrix<T>::operator[](size_t index) {
-    return mat[index];
+T& Matrix<T>::operator()(size_t row, size_t col) {
+#ifdef DEBUG
+    if (r >= rows || c >= cols)
+        throw std::out_of_range("Matrix index out of range");
+#endif
+    return mat[row * cols + col];
 }
 
 template<typename T>
-const Vector<T>& Matrix<T>::operator[](size_t index) const {
-    return mat[index];
+const T& Matrix<T>::operator()(size_t row, size_t col) const {
+#ifdef DEBUG
+    if (r >= rows || c >= cols)
+        throw std::out_of_range("Matrix index out of range");
+#endif
+    return mat[row * cols + col];
+}
+
+template<typename T>
+T* Matrix<T>::operator[](size_t row) {
+    return &mat[row * cols];  
+}
+
+template<typename T>
+const T* Matrix<T>::operator[](size_t row) const {
+    return &mat[row * cols];
 }
 
 //Overloaded insertion operator
 template<typename U>
 std::ostream &operator<<(std::ostream &os, const Matrix<U> &rhs) {
-    std::cout << "[";
-    std::cout << std::endl;
-    for (size_t i = 0; i < rhs.mat.size(); ++i)
-            std::cout << " " << rhs.mat[i] << std::endl;
-    std::cout << "]";
+    os << "[\n";
+    for (size_t i = 0; i < rhs.nrow(); ++i) {
+        os << " [ ";  
+        for (size_t j = 0; j < rhs.ncol(); ++j) {
+            os << rhs(i, j) << " ";
+        }
+        os << "]\n";
+    }
+    os << "]";
     return os;
 }
     
@@ -148,77 +202,70 @@ std::istream &operator>>(std::istream &is, Matrix<U> &rhs) {
 //Matrix addition
 template<typename T>
 Matrix<T> Matrix<T>::operator-() const {
-    Matrix<T> temp(mat.size());
-    for (size_t i = 0; i < mat.size(); ++i) 
-        temp[i] = std::move(-mat[i]);
+    Matrix<T> temp(this->rows, this->cols);
+    temp.mat = -mat;
     return temp;
 }
 
 template<typename T>
 Matrix<T> Matrix<T>::operator+(const Matrix<T> &rhs) const {
 // #ifdef DEBUG
-    if (this->nrow() != rhs.nrow() || this->ncol() != rhs.ncol())
+    if (this->rows != rhs.rows || this->cols != rhs.cols)
         throw std::invalid_argument(DIMENSION_ERROR);
 
 // #endif
-    Matrix<T> temp(this->nrow(), this->ncol());
-    for (size_t i = 0; i < mat.size(); ++i) 
-        temp[i] = mat[i] + rhs[i];
+    Matrix<T> temp(this->rows, this->cols);
+    temp.mat = this->mat + rhs.mat;
     return temp;
 }
 
 template<typename T>
 Matrix<T> Matrix<T>::operator-(const Matrix<T> &rhs) const {
 // #ifdef DEBUG
-    if (this->nrow() != rhs.nrow() || this->ncol() != rhs.ncol()) 
+    if (this->rows != rhs.rows || this->cols != rhs.cols)
         throw std::invalid_argument(DIMENSION_ERROR);
+
 // #endif
-    Matrix<T> temp(this->nrow(), this->ncol());
-    for (size_t i = 0; i < mat.size(); ++i)
-        temp[i] = mat[i] - rhs[i];
+    Matrix<T> temp(this->rows, this->cols);
+    temp.mat = this->mat - rhs.mat;
     return temp;
 }
 
 //Scalar-Matrix addition (Special)
 template<typename T>
 Matrix<T> Matrix<T>::operator+(T scalar) const {
-    Matrix<T> temp(this->nrow(), this->ncol());
-    for (size_t i = 0; i < mat.size(); ++i)
-        temp[i] = mat[i] + scalar;
+    Matrix<T> temp(this->rows, this->cols);
+    temp.mat = this->mat + scalar;
     return temp;
 }
 
 template<typename T>
 Matrix<T> Matrix<T>::operator-(T scalar) const {
-    Matrix<T> temp(this->nrow(), this->ncol());
-    for (size_t i = 0; i < mat.size(); ++i)
-        temp[i] = mat[i] - scalar;
+    Matrix<T> temp(this->rows, this->cols);
+    temp.mat = this->mat - scalar;
     return temp;
 }
 
 //Commutativity for Scalar-Matrix addition
 template<typename U>
 Matrix<U> operator+(U scalar, const Matrix<U> &rhs) {
-    Matrix<U> temp(rhs.nrow(), rhs.ncol());
-    for (size_t i = 0; i < rhs.nrow(); ++i)
-        temp[i] = scalar + rhs.mat[i];
+    Matrix<U> temp(rhs.rows, rhs.cols);
+    temp.mat = scalar + rhs.mat;
     return temp;
 }
 
 template<typename U>
 Matrix<U> operator-(U scalar, const Matrix<U> &rhs) {
-    Matrix<U> temp(rhs.nrow(), rhs.ncol());
-    for (size_t i = 0; i < rhs.nrow(); ++i)
-        temp[i] = scalar - rhs.mat[i];
+    Matrix<U> temp(rhs.rows, rhs.cols);
+    temp.mat = scalar - rhs.mat;
     return temp;
 }
 
 //Scalar muliplication
 template<typename T>
 Matrix<T> Matrix<T>::operator*(T scalar) const {
-    Matrix<T> temp(this->nrow());
-    for (size_t i = 0; i < this->nrow(); ++i)
-        temp[i] = mat[i]*scalar;
+    Matrix<T> temp(this->rows, this->cols);
+    temp.mat = this->mat*scalar;
     return temp;
 }
 
@@ -229,18 +276,16 @@ Matrix<T> Matrix<T>::operator/(T scalar) const {
         throw std::invalid_argument(DIVISION_ERROR);
     }
 #endif    
-    Matrix<T> temp(this->nrow());
-    for (size_t i = 0; i < this->nrow(); ++i)
-        temp[i] = mat[i]/scalar;
+    Matrix<T> temp(this->rows, this->cols);
+    temp.mat = mat/scalar;
     return temp;
 }
 
 //Commutativity for Scalar multiplication
 template<typename U>
 Matrix<U> operator*(U scalar, const Matrix<U> &rhs) {
-    Matrix<U> temp(rhs.nrow());
-    for (size_t i = 0; i < rhs.nrow(); ++i)
-        temp[i] = scalar*rhs[i];
+    Matrix<U> temp(rhs.rows, rhs.cols);
+    temp.mat = scalar*rhs.mat;
     return temp;
 }
 
@@ -258,7 +303,7 @@ Matrix<T> Matrix<T>::operator*(const Matrix<T> &rhs) const {
     for (size_t i = 0; i < this->nrow(); ++i) {
         for (size_t j = 0; j < rhs.ncol(); ++j) {
             for (size_t k = 0; k < this->ncol(); ++k) {
-                temp[i][j] += mat[i][k]*rhs.mat[k][j];
+                temp[i][j] += mat[i*cols + k]*rhs[k][j];
             }
         }
     }   
@@ -325,43 +370,46 @@ Matrix<U> matmul(const Vector<U> &lhs, const Matrix<U> &rhs) {
 //Display
 template<typename T>
 size_t Matrix<T>::nrow() {
-    return mat.size();
+    return this->rows;
 }
 
 template<typename T>
 const size_t Matrix<T>::nrow() const {
-    return mat.size();
+    return this->rows;
 }
 
 template<typename T>
 size_t Matrix<T>::ncol() {
-    return mat[0].size();
+    return this->cols;
 }
 
 template<typename T>
 const size_t Matrix<T>::ncol() const {
-    return mat[0].size();
+    return this->cols;
 }
 
 template<typename T>
 void Matrix<T>::print() const {
-    std::cout << "[";
-    std::cout << std::endl;
-    for (size_t i = 0; i < mat.size(); ++i)
-            std::cout << " " << mat[i] << std::endl;
-    std::cout << "]";
-    std::cout << "\n";
+    std::cout << "[\n";
+    for (size_t i = 0; i < this->rows; ++i) {
+        std::cout << " [ ";  
+        for (size_t j = 0; j < this->cols; ++j) {
+            std::cout << mat[i*cols + j] << " ";
+        }
+        std::cout << "]\n";
+    }
+    std::cout << "]\n";
 }
 
 //Accessment
 template<typename T>
 T& Matrix<T>::at(size_t row, size_t col) {
-    return mat.at(row).at(col);
+    return mat.at(row*this->cols + col);
 }
 
 template<typename T>
 const T& Matrix<T>::at(size_t row, size_t col) const {
-    return mat.at(row).at(col);
+    return mat.at(row*this->cols + col);
 }
 
 template<typename T>
@@ -370,31 +418,51 @@ const Matrix<T> &Matrix<T>::get_mat() const {
 }
 
 template<typename T>
+typename std::vector<T>::iterator Matrix<T>::begin() {
+    return mat.begin();
+}
+
+template<typename T>
+typename std::vector<T>::iterator Matrix<T>::end() {
+    return mat.end();
+}
+
+template<typename T>
+typename std::vector<T>::const_iterator Matrix<T>::begin() const {
+    return mat.begin();
+}
+
+template<typename T>
+typename std::vector<T>::const_iterator Matrix<T>::end() const {
+    return mat.end();
+}
+
+template<typename T>
 typename std::vector<T>::iterator Matrix<T>::row_begin(size_t row) {
-    if (row >= mat.size()) 
-        throw std::out_of_range("Row index out of range");
-    return mat[row].begin();
+    if (row >= rows)
+        throw std::out_of_range("row_begin: row index out of range");
+    return mat.begin() + row*cols;
 }
 
 template<typename T>
 typename std::vector<T>::iterator Matrix<T>::row_end(size_t row) {
-    if (row >= mat.size()) 
-        throw std::out_of_range("Row index out of range");
-    return mat[row].end();
+    if (row >= rows)
+        throw std::out_of_range("row_end: row index out of range");
+    return mat.begin() + row*cols + cols;
 }
 
 template<typename T>
 typename std::vector<T>::const_iterator Matrix<T>::row_begin(size_t row) const {
-    if (row >= mat.size()) 
-        throw std::out_of_range("Row index out of range");
-    return mat[row].begin();
+    if (row >= rows)
+        throw std::out_of_range("row_begin: row index out of range");
+    return mat.begin() + row*cols;
 }
 
 template<typename T>
 typename std::vector<T>::const_iterator Matrix<T>::row_end(size_t row) const {
-    if (row >= mat.size()) 
-        throw std::out_of_range("Row index out of range");
-    return mat[row].end();
+    if (row >= rows)
+        throw std::out_of_range("row_end: row index out of range");
+    return mat.begin() + row*cols + rows;
 }
 
 //Mathematical implementation
@@ -403,7 +471,7 @@ Matrix<T> Matrix<T>::transpose() const{
     Matrix<T> temp(this->ncol(), this->nrow());
     for (size_t i = 0; i < this->nrow(); ++i) {
         for (size_t j = 0; j < this->ncol(); ++j) {
-            temp[j][i] = mat[i][j];
+            temp[j][i] = mat[i*cols + j];
         }
     }
     return temp;
@@ -416,7 +484,7 @@ Vector<T> Matrix<T>::diag() const{
         this->nrow() : this->ncol();
     Vector<T> temp(ndiag);
     for (size_t i = 0; i < ndiag; ++i)
-        temp[i] = mat[i][i];
+        temp[i] = mat[i*cols + i];
     return temp;
 } 
 
@@ -429,7 +497,7 @@ Vector<T> Matrix<T>::upp_diag(size_t upper) const{
         throw std::out_of_range("Upper index out of range");
     Vector<T> temp(ndiag);
     for (size_t i = 0; i < this->ncol()-upper; ++i) 
-        temp[i] = mat[i][i+upper];
+        temp[i] = mat[i*cols + i + upper];
     return temp;
 }
 
@@ -442,7 +510,7 @@ Vector<T> Matrix<T>::low_diag(size_t lower) const{
         throw std::out_of_range("Lower index out of range");
     Vector<T> temp(ndiag);
     for (size_t i = 0; i < this->nrow()-lower; ++i) 
-        temp[i] = mat[i+lower][i];
+        temp[i] =mat[(i + lower)*cols + i];
     return temp;
 }
 

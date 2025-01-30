@@ -8,7 +8,6 @@ class Vector {
 protected:
     std::vector<T> vec;
     size_t dim;
-    
 public :
     //Overloaded constructors
     Vector();

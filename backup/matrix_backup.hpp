@@ -1,5 +1,5 @@
-#ifndef MATRIX_CA_HPP
-#define MATRIX_CA_HPP
+#ifndef MATRIX_HPP
+#define MATRIX_HPP
 
 /******************Overloaded constructors*******************/
 //Default constructors

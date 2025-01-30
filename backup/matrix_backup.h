@@ -1,14 +1,14 @@
-#ifndef MATRIX_CA_H
-#define MATRIX_CA_H
+#ifndef MATRIX_H
+#define MATRIX_H
 
 #include "pch.h"
 #include "vector.h"
 
 template<typename T>
-class Matrix{
+class Matrix {
 protected:
-    Vector<T> mat;
-    size_t nrow, ncol;
+    Vector<Vector<T>> mat;
+
 public :
     //Overloaded consturctors
     //Initializer Constructors
@@ -317,6 +317,6 @@ public :
     
 };
 
-#include "matrix_.hpp"
+#include "matrix.hpp"
 
 #endif
