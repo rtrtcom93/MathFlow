@@ -287,7 +287,7 @@ void Vector<T>::print() const {
     std::cout << "\n";
 }
 
-/********************Accesment on data***********************/
+/********************Accessment on data***********************/
 //Access member methods
 template<typename T>
 T& Vector<T>::at(size_t index) {
@@ -324,8 +324,62 @@ typename std::vector<T>::const_iterator Vector<T>::end() const {
     return vec.end();
 }
 
+//Extension
+template<typename T>
+void Vector<T>::push_back(const T& value) {
+    vec.push_back(value);
+    dim = vec.size();
+}
+
+template<typename T>
+void Vector<T>::pop_back() {
+    if (vec.empty()) {
+        throw std::underflow_error("Vector is empty.");
+    }
+    vec.pop_back();
+    dim = vec.size();
+}
+
+template<typename T>
+void Vector<T>::resize(size_t new_size, T init_val) {
+    vec.resize(new_size, init_val);
+    dim = vec.size();
+}
+
+template<typename T>
+void Vector<T>::reserve(size_t new_size) {
+    vec.reserve(new_size);
+    dim = vec.size();
+}
+
+template<typename T>
+void Vector<T>::clear() {
+    vec.clear();
+    dim = vec.size();
+}
+
+template<typename T>
+typename std::vector<T>::iterator Vector<T>::insert(size_t pos, const T& value) {
+    if (pos > vec.size()) {
+        throw std::out_of_range("Insert position out of bounds");
+    }
+    auto it = vec.insert(vec.begin() + pos, value);
+    dim = vec.size(); 
+    return it;
+}
+
+template<typename T>
+typename std::vector<T>::iterator Vector<T>::erase(size_t pos) {
+    if (pos >= vec.size()) {
+        throw std::out_of_range("Erase position out of bounds");
+    }
+    auto it = vec.erase(vec.begin() + pos);
+    dim = vec.size();
+    return it;
+}
+
 /******************Mathematical implementation************************/
-//Magnitude
+//Summation
 template<typename T>
 T Vector<T>::sum() const {
     T temp{0};

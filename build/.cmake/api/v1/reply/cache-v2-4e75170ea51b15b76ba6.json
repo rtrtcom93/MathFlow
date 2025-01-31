@@ -55,7 +55,7 @@
 				}
 			],
 			"type" : "INTERNAL",
-			"value" : "/mnt/c/Users/choij/OneDrive - MPMC@Yonsei/MPMC_jiyong/1. Project/Internal/Personal/MyCodes/myLib/build"
+			"value" : "/mnt/c/Users/Jiyong_choi/OneDrive - MPMC@Yonsei/MPMC_jiyong/1. Project/Internal/Personal/MyCodes/myLib/build"
 		},
 		{
 			"name" : "CMAKE_CACHE_MAJOR_VERSION",
@@ -595,7 +595,7 @@
 				}
 			],
 			"type" : "INTERNAL",
-			"value" : "/mnt/c/Users/choij/OneDrive - MPMC@Yonsei/MPMC_jiyong/1. Project/Internal/Personal/MyCodes/myLib"
+			"value" : "/mnt/c/Users/Jiyong_choi/OneDrive - MPMC@Yonsei/MPMC_jiyong/1. Project/Internal/Personal/MyCodes/myLib"
 		},
 		{
 			"name" : "CMAKE_INSTALL_PREFIX",
@@ -1191,7 +1191,7 @@
 				}
 			],
 			"type" : "STATIC",
-			"value" : "/mnt/c/Users/choij/OneDrive - MPMC@Yonsei/MPMC_jiyong/1. Project/Internal/Personal/MyCodes/myLib/build"
+			"value" : "/mnt/c/Users/Jiyong_choi/OneDrive - MPMC@Yonsei/MPMC_jiyong/1. Project/Internal/Personal/MyCodes/myLib/build"
 		},
 		{
 			"name" : "myLib_IS_TOP_LEVEL",
@@ -1215,7 +1215,7 @@
 				}
 			],
 			"type" : "STATIC",
-			"value" : "/mnt/c/Users/choij/OneDrive - MPMC@Yonsei/MPMC_jiyong/1. Project/Internal/Personal/MyCodes/myLib"
+			"value" : "/mnt/c/Users/Jiyong_choi/OneDrive - MPMC@Yonsei/MPMC_jiyong/1. Project/Internal/Personal/MyCodes/myLib"
 		}
 	],
 	"kind" : "cache",

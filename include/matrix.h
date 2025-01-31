@@ -58,31 +58,39 @@ public :
     Matrix<T> operator-() const;
     Matrix<T> operator+(const Matrix<T> &rhs) const;
     Matrix<T> operator-(const Matrix<T> &rhs) const;
+
     //Scalar-Matrix addition (Special)
     Matrix<T> operator+(T Scalar) const;
     Matrix<T> operator-(T Scalar) const;
-    //Commutativity for Scalar-Matrix addition
+        //Commutativity 
     template<typename U>
     friend Matrix<U> operator+(U scalar, const Matrix<U> &rhs);
     template<typename U>
     friend Matrix<U> operator-(U scalar, const Matrix<U> &rhs);
 
+    //Multiplication
     //Scalar muliplication
     Matrix<T> operator*(T scalar) const;
     Matrix<T> operator/(T scalar) const;
+        //Commutativity
     template<typename U>
     friend Matrix<U> operator*(U scalar, const Matrix<U> &rhs);
 
-    //Product
-    //Matrix multiplication
-    Matrix<T> operator*(const Matrix<T> &rhs) const;
+    //Vector-Matrix multiplication
+    Matrix<T> operator*(const Vector<T> &vector) const;
+        //Commutativity
     template<typename U>
     friend Vector<U> operator*(const Vector<U> &lhs, const Matrix<U> &rhs);
-    template<typename U>
-    friend Matrix<U> matmul(const Matrix<U> &lhs, const Matrix<U> &rhs);
+        //Method
     template<typename U>
     friend Vector<U> matmul(const Vector<U> &lhs, const Matrix<U> &rhs);
-  
+    
+    //Matrix-Matrix multiplication
+    Matrix<T> operator*(const Matrix<T> &rhs) const;
+        //Method
+    template<typename U>
+    friend Matrix<U> matmul(const Matrix<U> &lhs, const Matrix<U> &rhs);
+
     //Display and Accessment options
     size_t nrow();
     const size_t nrow() const;
@@ -317,7 +325,10 @@ public :
         }
         return ConstColIterator(*this, col, this->nrow());  // 마지막 행 다음
     }
-    
+
+    //Dynamical extension
+
+
     //Mathematical implementation
     Matrix<T> transpose() const;
     Vector<T> diag() const;

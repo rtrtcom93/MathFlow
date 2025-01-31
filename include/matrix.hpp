@@ -198,7 +198,7 @@ std::istream &operator>>(std::istream &is, Matrix<U> &rhs) {
     return is;
 }
 
-//Arithmetic operators for a vector space
+//Arithmetic operators for matrices
 //Matrix addition
 template<typename T>
 Matrix<T> Matrix<T>::operator-() const {
@@ -289,7 +289,44 @@ Matrix<U> operator*(U scalar, const Matrix<U> &rhs) {
     return temp;
 }
 
-//Product
+//Vector-Matrix multiplication
+template<typename T>
+Matrix<T> Matrix<T>::operator*(const Vector<T> &vector) const {
+// #ifdef DEBUG 
+    if (this->ncol() != vector.size())
+        throw std::invalid_argument("Matrix multiplication error: M.ncol() = " +
+                                    std::to_string(this->ncol()) + ", V.size() = " +
+                                    std::to_string(vector.size()) +
+                                    ". Ensure M.ncol() == V.size()");
+// #endif
+    Matrix<T> temp(this->nrow());
+    for (size_t i = 0; i < this->nrow(); ++i) {
+        for (size_t j = 0; j < vector.size(); ++j) {
+            temp[i] += this[i][j]*vector[j];
+        }
+    }   
+    return temp;     
+}
+
+template<typename U>
+Vector<U> operator*(const Vector<U> &lhs, const Matrix<U> &rhs) {
+// #ifdef DEBUG 
+    if (lhs.size() != rhs.nrow())
+        throw std::invalid_argument("Matrix multiplication error: V.size() = " +
+                                    std::to_string(lhs.size()) + ", M.nrow() = " +
+                                    std::to_string(rhs.nrow()) +
+                                    ". Ensure A.cols == B.rows.");
+// #endif
+    Matrix<U> temp(rhs.ncol());
+    for (size_t i = 0; i < rhs.ncol(); ++i) {
+        for (size_t j = 0; j < lhs.size(); ++j) {
+            temp[i] += lhs[j]*rhs[j][i];
+        }
+    }   
+    return temp;     
+}
+
+//Matrix-Matrix multiplication
 template<typename T>
 Matrix<T> Matrix<T>::operator*(const Matrix<T> &rhs) const {
 // #ifdef DEBUG
@@ -311,24 +348,6 @@ Matrix<T> Matrix<T>::operator*(const Matrix<T> &rhs) const {
 }
 
 template<typename U>
-Vector<U> operator*(const Vector<U> &lhs, const Matrix<U> &rhs) {
-// #ifdef DEBUG 
-    if (lhs.size() != rhs.nrow())
-        throw std::invalid_argument("Matrix multiplication error: V.size() = " +
-                                    std::to_string(lhs.size()) + ", M.nrow() = " +
-                                    std::to_string(rhs.nrow()) +
-                                    ". Ensure A.cols == B.rows.");
-// #endif
-    Matrix<U> temp(rhs.ncol());
-    for (size_t i = 0; i < rhs.ncol(); ++i) {
-        for (size_t j = 0; j < lhs.size(); ++j) {
-            temp[i] += lhs[j]*rhs[j][i];
-        }
-    }   
-    return temp;     
-}
-
-template<typename U>
 Matrix<U> matmul(const Matrix<U> &lhs, const Matrix<U> &rhs) {
 // #ifdef DEBUG 
     if (lhs.ncol() != rhs.nrow())
@@ -345,24 +364,6 @@ Matrix<U> matmul(const Matrix<U> &lhs, const Matrix<U> &rhs) {
             }
         }
     } 
-    return temp; 
-}
-
-template<typename U>
-Matrix<U> matmul(const Vector<U> &lhs, const Matrix<U> &rhs) {
-// #ifdef DEBUG 
-    if (lhs.size() != rhs.nrow()) 
-        throw std::invalid_argument("Matrix multiplication error: V.size() = " +
-                                    std::to_string(lhs.size()) + ", M.nrow() = " +
-                                    std::to_string(rhs.nrow()) +
-                                    ". Ensure A.cols == B.rows.");
-// #endif
-    Matrix<U> temp(rhs.ncol());
-    for (size_t i = 0; i < rhs.ncol(); ++i) {
-        for (size_t j = 0; j < lhs.size(); ++j) {
-            temp[i] += lhs[j]*rhs[j][i];
-        }
-    }   
     return temp; 
 }
 

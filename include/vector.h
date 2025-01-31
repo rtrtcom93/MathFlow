@@ -76,6 +76,7 @@ public :
     //Display and Accessment options
     //Display
     size_t size();
+    size_t capacity();
     const size_t size() const ;
     void print() const;
 
@@ -89,6 +90,21 @@ public :
     typename std::vector<T>::const_iterator begin() const;
     typename std::vector<T>::const_iterator end() const;
 
+    //Dynamic extension
+    void push_back(const T& value);
+    void pop_back();
+
+    template<typename... Args>
+    void emplace_back(Args&&... args) {
+        vec.emplace_back(std::forward<Args>(args)...);
+    }
+
+    void resize(size_t new_size, T init_val = 0);
+    void reserve(size_t new_size);
+    void clear();
+    typename std::vector<T>::iterator insert(size_t pos, const T& value);
+    typename std::vector<T>::iterator erase(size_t pos);
+    
     //Mathematical implementation
     T sum() const;
     T mag() const;
