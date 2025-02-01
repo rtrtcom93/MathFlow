@@ -1,7 +1,7 @@
 #ifndef VECTOR_HPP
 #define VECTOR_HPP
 
-constexpr const char* DIMENSION_ERROR = "The dimensions of vector spaces are not same.";
+constexpr const char* DIMENSION_ERROR = "Dimension mismatch in the shapes of vectors/matrices.";
 constexpr const char* DIVISION_ERROR  = "Division by zero";
 
 /******************Overloaded constructors*******************/

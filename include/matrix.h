@@ -337,7 +337,6 @@ public :
     Matrix<T> diag() const;
     Matrix<T> upp_diag(size_t upper) const;
     Matrix<T> low_diag(size_t lower) const;
-
     T trace() const;
     
 };
