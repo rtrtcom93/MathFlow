@@ -324,7 +324,7 @@ typename std::vector<T>::const_iterator Vector<T>::end() const {
     return vec.end();
 }
 
-//Extension
+//Dynamical extension
 template<typename T>
 void Vector<T>::push_back(const T& value) {
     vec.push_back(value);

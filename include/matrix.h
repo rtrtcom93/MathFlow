@@ -80,10 +80,10 @@ public :
     Matrix<T> operator*(const Vector<T> &vector) const;
         //Commutativity
     template<typename U>
-    friend Vector<U> operator*(const Vector<U> &lhs, const Matrix<U> &rhs);
+    friend Matrix<U> operator*(const Vector<U> &lhs, const Matrix<U> &rhs);
         //Method
     template<typename U>
-    friend Vector<U> matmul(const Vector<U> &lhs, const Matrix<U> &rhs);
+    friend Matrix<U> matmul(const Vector<U> &lhs, const Matrix<U> &rhs);
     
     //Matrix-Matrix multiplication
     Matrix<T> operator*(const Matrix<T> &rhs) const;
@@ -92,10 +92,13 @@ public :
     friend Matrix<U> matmul(const Matrix<U> &lhs, const Matrix<U> &rhs);
 
     //Display and Accessment options
+    
+    size_t size();
     size_t nrow();
     const size_t nrow() const;
     size_t ncol();
     const size_t ncol() const;
+    void shape() const;
     void print() const;
 
     //Accessment
@@ -331,9 +334,11 @@ public :
 
     //Mathematical implementation
     Matrix<T> transpose() const;
-    Vector<T> diag() const;
-    Vector<T> upp_diag(size_t upper) const;
-    Vector<T> low_diag(size_t lower) const;
+    Matrix<T> diag() const;
+    Matrix<T> upp_diag(size_t upper) const;
+    Matrix<T> low_diag(size_t lower) const;
+
+    T trace() const;
     
 };
 

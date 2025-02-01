@@ -136,7 +136,7 @@ bool Matrix<T>::operator!=(const Matrix<T> &rhs) const {
 template<typename T>
 T& Matrix<T>::operator()(size_t row, size_t col) {
 #ifdef DEBUG
-    if (r >= rows || c >= cols)
+    if (row >= rows || col >= cols)
         throw std::out_of_range("Matrix index out of range");
 #endif
     return mat[row * cols + col];
@@ -145,7 +145,7 @@ T& Matrix<T>::operator()(size_t row, size_t col) {
 template<typename T>
 const T& Matrix<T>::operator()(size_t row, size_t col) const {
 #ifdef DEBUG
-    if (r >= rows || c >= cols)
+    if (row >= rows || col >= cols)
         throw std::out_of_range("Matrix index out of range");
 #endif
     return mat[row * cols + col];
@@ -299,17 +299,17 @@ Matrix<T> Matrix<T>::operator*(const Vector<T> &vector) const {
                                     std::to_string(vector.size()) +
                                     ". Ensure M.ncol() == V.size()");
 // #endif
-    Matrix<T> temp(this->nrow());
+    Matrix<T> temp(this->nrow(), 1);
     for (size_t i = 0; i < this->nrow(); ++i) {
         for (size_t j = 0; j < vector.size(); ++j) {
-            temp[i] += this[i][j]*vector[j];
+            temp[i][0] += mat[i*cols + j]*vector[j];
         }
     }   
     return temp;     
 }
 
 template<typename U>
-Vector<U> operator*(const Vector<U> &lhs, const Matrix<U> &rhs) {
+Matrix<U> operator*(const Vector<U> &lhs, const Matrix<U> &rhs) {
 // #ifdef DEBUG 
     if (lhs.size() != rhs.nrow())
         throw std::invalid_argument("Matrix multiplication error: V.size() = " +
@@ -317,14 +317,32 @@ Vector<U> operator*(const Vector<U> &lhs, const Matrix<U> &rhs) {
                                     std::to_string(rhs.nrow()) +
                                     ". Ensure A.cols == B.rows.");
 // #endif
-    Matrix<U> temp(rhs.ncol());
+    Matrix<U> temp(1, rhs.ncol());
     for (size_t i = 0; i < rhs.ncol(); ++i) {
         for (size_t j = 0; j < lhs.size(); ++j) {
-            temp[i] += lhs[j]*rhs[j][i];
+            temp[0][i] += lhs[j]*rhs[j][i];
         }
     }   
     return temp;     
 }
+template<typename U>
+Matrix<U> matmul(const Vector<U> &lhs, const Matrix<U> &rhs) {
+// #ifdef DEBUG 
+    if (lhs.ncol() != rhs.nrow())
+        throw std::invalid_argument("Matrix multiplication error: A.ncol() = " +
+                                    std::to_string(lhs.ncol()) + ", B.nrow() = " +
+                                    std::to_string(rhs.nrow()) +
+                                    ". Ensure A.cols == B.rows.");
+// #endif
+    Matrix<U> temp(1, rhs.ncol());
+    for (size_t i = 0; i < rhs.ncol(); ++i) {
+        for (size_t j = 0; j < lhs.size(); ++j) {
+            temp[0][j] += lhs[j]*rhs[j][i];
+        }
+    }    
+    return temp; 
+}
+
 
 //Matrix-Matrix multiplication
 template<typename T>
@@ -370,6 +388,11 @@ Matrix<U> matmul(const Matrix<U> &lhs, const Matrix<U> &rhs) {
 //Display and Accessment options
 //Display
 template<typename T>
+size_t Matrix<T>::size() {
+    return mat.size();
+}
+
+template<typename T>
 size_t Matrix<T>::nrow() {
     return this->rows;
 }
@@ -388,6 +411,13 @@ template<typename T>
 const size_t Matrix<T>::ncol() const {
     return this->cols;
 }
+
+template<typename T>
+void Matrix<T>::shape() const {
+    std::cout << "Matrix : " + std::to_string(rows) 
+    + " X " + std::to_string(cols) << std::endl;
+}
+
 
 template<typename T>
 void Matrix<T>::print() const {
@@ -479,45 +509,49 @@ Matrix<T> Matrix<T>::transpose() const{
 }
 
 template<typename T>
-Vector<T> Matrix<T>::diag() const{
+Matrix<T> Matrix<T>::diag() const{
     size_t ndiag=
         (this->ncol() >= this->nrow()) ? 
         this->nrow() : this->ncol();
-    Vector<T> temp(ndiag);
+    Matrix<T> temp(1, ndiag);
     for (size_t i = 0; i < ndiag; ++i)
-        temp[i] = mat[i*cols + i];
+        temp[0][i] = mat[i*cols + i];
     return temp;
 } 
 
 template<typename T>
-Vector<T> Matrix<T>::upp_diag(size_t upper) const{
+Matrix<T> Matrix<T>::upp_diag(size_t upper) const{
     size_t ndiag=
         (this->ncol() >= this->nrow()) ? 
         this->nrow() : this->ncol();
     if (upper >= this->ncol())
         throw std::out_of_range("Upper index out of range");
-    Vector<T> temp(ndiag);
+    Matrix<T> temp(1, ndiag);
     for (size_t i = 0; i < this->ncol()-upper; ++i) 
-        temp[i] = mat[i*cols + i + upper];
+        temp[0][i] = mat[i*cols + i + upper];
     return temp;
 }
 
 template<typename T>
-Vector<T> Matrix<T>::low_diag(size_t lower) const{
+Matrix<T> Matrix<T>::low_diag(size_t lower) const{
     size_t ndiag=
         (this->ncol() >= this->nrow()) ? 
         this->nrow() : this->ncol();
     if (lower >= this->nrow())
         throw std::out_of_range("Lower index out of range");
-    Vector<T> temp(ndiag);
+    Matrix<T> temp(1, ndiag);
     for (size_t i = 0; i < this->nrow()-lower; ++i) 
-        temp[i] =mat[(i + lower)*cols + i];
+        temp[0][i] = mat[(i + lower)*cols + i];
     return temp;
 }
 
-// template<typename T>
-// Vector<T> Matrix<T>::low_diag(size_t lower) const{
-
-// }
+template<typename T>
+T Matrix<T>::trace() const {
+    Matrix<T>temp = this->diag();
+    T tr{0};
+    for (auto& val: temp) 
+        tr += val;
+    return tr;
+}
 
 #endif

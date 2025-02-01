@@ -13,6 +13,7 @@ add_executable(field
 main.cpp
 )
 
+add_compile_definitions(DEBUG)
 target_include_directories(field PRIVATE "${PROJECT_SOURCE_DIR}/include")
 
 
