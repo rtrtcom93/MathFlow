@@ -75,9 +75,8 @@ public :
 
     //Display and Accessment options
     //Display
-    size_t size();
-    size_t capacity();
-    const size_t size() const ;
+    size_t size() const ;
+    size_t capacity() const;
     void print() const;
 
     //Accessment

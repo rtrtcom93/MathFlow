@@ -77,7 +77,7 @@ public :
     friend Matrix<U> operator*(U scalar, const Matrix<U> &rhs);
 
     //Vector-Matrix multiplication
-    Matrix<T> operator*(const Vector<T> &vector) const;
+    Matrix<T> operator*(const Vector<T> &vec) const;
         //Commutativity
     template<typename U>
     friend Matrix<U> operator*(const Vector<U> &lhs, const Matrix<U> &rhs);
@@ -92,12 +92,10 @@ public :
     friend Matrix<U> matmul(const Matrix<U> &lhs, const Matrix<U> &rhs);
 
     //Display and Accessment options
-    
-    size_t size();
-    size_t nrow();
-    const size_t nrow() const;
-    size_t ncol();
-    const size_t ncol() const;
+    size_t size() const;
+    size_t capacity() const;
+    size_t nrow() const;
+    size_t ncol() const;
     void shape() const;
     void print() const;
 
@@ -330,7 +328,10 @@ public :
     }
 
     //Dynamical extension
-
+    void push_back(const Vector<T>& vec, int axis);
+    void push_back(const Matrix<T>& vec, int axis);
+    void pop_back(int axis);
+    void clear();
 
     //Mathematical implementation
     Matrix<T> transpose() const;
@@ -338,7 +339,8 @@ public :
     Matrix<T> upp_diag(size_t upper) const;
     Matrix<T> low_diag(size_t lower) const;
     T trace() const;
-    
+
+    T det() const;
 };
 
 #include "matrix.hpp"

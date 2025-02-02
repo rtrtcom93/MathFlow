@@ -291,18 +291,18 @@ Matrix<U> operator*(U scalar, const Matrix<U> &rhs) {
 
 //Vector-Matrix multiplication
 template<typename T>
-Matrix<T> Matrix<T>::operator*(const Vector<T> &vector) const {
+Matrix<T> Matrix<T>::operator*(const Vector<T> &vec) const {
 // #ifdef DEBUG 
-    if (this->ncol() != vector.size())
+    if (this->ncol() != vec.size())
         throw std::invalid_argument("Matrix multiplication error: M.ncol() = " +
                                     std::to_string(this->ncol()) + ", V.size() = " +
-                                    std::to_string(vector.size()) +
+                                    std::to_string(vec.size()) +
                                     ". Ensure M.ncol() == V.size()");
 // #endif
     Matrix<T> temp(this->nrow(), 1);
     for (size_t i = 0; i < this->nrow(); ++i) {
-        for (size_t j = 0; j < vector.size(); ++j) {
-            temp[i][0] += mat[i*cols + j]*vector[j];
+        for (size_t j = 0; j < vec.size(); ++j) {
+            temp[i][0] += mat[i*cols + j]*vec[j];
         }
     }   
     return temp;     
@@ -388,33 +388,28 @@ Matrix<U> matmul(const Matrix<U> &lhs, const Matrix<U> &rhs) {
 //Display and Accessment options
 //Display
 template<typename T>
-size_t Matrix<T>::size() {
+size_t Matrix<T>::size() const {
     return mat.size();
 }
 
 template<typename T>
-size_t Matrix<T>::nrow() {
-    return this->rows;
+size_t Matrix<T>::capacity() const {
+    return mat.capacity();
 }
 
 template<typename T>
-const size_t Matrix<T>::nrow() const {
-    return this->rows;
+size_t Matrix<T>::nrow() const {
+    return rows;
 }
 
 template<typename T>
-size_t Matrix<T>::ncol() {
-    return this->cols;
-}
-
-template<typename T>
-const size_t Matrix<T>::ncol() const {
-    return this->cols;
+size_t Matrix<T>::ncol() const {
+    return cols;
 }
 
 template<typename T>
 void Matrix<T>::shape() const {
-    std::cout << "Matrix : " + std::to_string(rows) 
+    std::cout << "n X m : " + std::to_string(rows) 
     + " X " + std::to_string(cols) << std::endl;
 }
 
@@ -496,6 +491,87 @@ typename std::vector<T>::const_iterator Matrix<T>::row_end(size_t row) const {
     return mat.begin() + row*cols + rows;
 }
 
+//Dynamical extension
+template<typename T>
+void Matrix<T>::push_back(const Vector<T>& vec, int axis) {
+    if (axis == 0) { //Push back row-vector
+        if (vec.size() != this->cols)
+            throw std::invalid_argument("Row-vector size does not match column count.");
+        this->mat.reserve(this->size()+vec.size());
+        for (auto &val : vec)
+            mat.push_back(val);
+        rows++;
+    } else if (axis == 1) {
+        if (vec.size() != this->rows)
+            throw std::invalid_argument("Col-vector size does not match row count.");
+        Vector<T> temp(rows*(cols + 1));
+        for (size_t i = 0; i < rows; ++i) {
+            for (size_t j = 0; j < cols; ++j) {
+                temp[i*(cols + 1) + j] = mat[i*cols + j];
+            }
+            temp[i*(cols + 1) + cols] = vec[i];
+        }
+        mat = std::move(temp);
+        cols++;
+    } else {
+        throw std::invalid_argument("Axis must be 0 (row) or 1 (column).");
+    }
+}
+
+template<typename T>
+void Matrix<T>::push_back(const Matrix<T>& rhs, int axis) {
+    if (axis == 0) { //Push back row-vector
+        if (rhs.ncol() != this->cols)
+            throw std::invalid_argument("Matrix row-size does not match column count.");
+        this->mat.reserve(this->size() + rhs.size());
+        for (auto &val : rhs)
+            this->mat.push_back(val);
+        rows += rhs.nrow();
+    } else if (axis == 1) {
+        if (rhs.nrow() != this->rows)
+            throw std::invalid_argument("Col-vector size does not match row count.");
+        Vector<T> temp(rows*(cols + rhs.ncol()));
+        for (size_t i = 0; i < rows; ++i) {
+            for (size_t j = 0; j < cols; ++j) {
+                temp[i*(cols + rhs.ncol()) + j] = mat[i*cols + j];
+            }
+            for (size_t j = 0; j < rhs.ncol(); ++j) {
+                temp[i*(cols + rhs.ncol()) + cols + j] = rhs[i][j];
+            }
+        }
+        mat = std::move(temp);
+        cols += rhs.ncol();
+    } else {
+        throw std::invalid_argument("Axis must be 0 (row) or 1 (column).");
+    }
+}
+
+template<typename T>
+void Matrix<T>::pop_back(int axis) {
+    if (axis == 0) {
+        if (rows == 0)
+            throw std::out_of_range("No rows to pop.");
+        for (size_t i = 0; i < cols; ++i){
+            mat.pop_back();
+        }
+        rows--;
+    } else if (axis == 1) {
+        if (cols == 0)
+            throw std::out_of_range("No columns to pop.");
+        for (size_t i = rows; i > 0; --i) {
+            mat.erase((i - 1) * cols + (cols - 1));
+        }
+        cols--;
+    }
+}
+
+template<typename T>
+void Matrix<T>::clear() {
+    mat.clear();
+    rows = mat.size();
+    cols = mat.size();
+}
+
 //Mathematical implementation
 template<typename T>
 Matrix<T> Matrix<T>::transpose() const{
@@ -553,5 +629,6 @@ T Matrix<T>::trace() const {
         tr += val;
     return tr;
 }
+
 
 #endif

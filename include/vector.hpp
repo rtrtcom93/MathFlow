@@ -268,13 +268,13 @@ double dot(const Vector<U> &lhs, const Vector<U> &rhs) {
 /******************Display and Accessment options*******************/
 //Display member methods
 template<typename T>
-size_t Vector<T>::size() {
+size_t Vector<T>::size() const {
     return dim;
 }
 
 template<typename T>
-const size_t Vector<T>::size() const {
-    return dim;
+size_t Vector<T>::capacity() const {
+    return vec.capacity();
 }
 
 template<typename T>
@@ -333,9 +333,10 @@ void Vector<T>::push_back(const T& value) {
 
 template<typename T>
 void Vector<T>::pop_back() {
-    if (vec.empty()) {
+#ifdef DEBUG
+    if (vec.empty())
         throw std::underflow_error("Vector is empty.");
-    }
+#endif
     vec.pop_back();
     dim = vec.size();
 }
@@ -348,8 +349,11 @@ void Vector<T>::resize(size_t new_size, T init_val) {
 
 template<typename T>
 void Vector<T>::reserve(size_t new_size) {
+#ifdef DEBUG
+    if (new_size < dim) 
+        throw std::invalid_argument("Error: Cannot reserve a smaller capacity.");
+#endif
     vec.reserve(new_size);
-    dim = vec.size();
 }
 
 template<typename T>
@@ -360,9 +364,10 @@ void Vector<T>::clear() {
 
 template<typename T>
 typename std::vector<T>::iterator Vector<T>::insert(size_t pos, const T& value) {
-    if (pos > vec.size()) {
+#ifdef DEBUG
+    if (pos > vec.size()) 
         throw std::out_of_range("Insert position out of bounds");
-    }
+#endif
     auto it = vec.insert(vec.begin() + pos, value);
     dim = vec.size(); 
     return it;
@@ -370,9 +375,10 @@ typename std::vector<T>::iterator Vector<T>::insert(size_t pos, const T& value) 
 
 template<typename T>
 typename std::vector<T>::iterator Vector<T>::erase(size_t pos) {
-    if (pos >= vec.size()) {
+#ifdef DEBUG
+    if (pos >= vec.size())
         throw std::out_of_range("Erase position out of bounds");
-    }
+#endif
     auto it = vec.erase(vec.begin() + pos);
     dim = vec.size();
     return it;
