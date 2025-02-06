@@ -152,54 +152,6 @@ const T& Matrix<T>::operator()(size_t row, size_t col) const {
 }
 
 template<typename T>
-Vector<T> Matrix<T>::operator()(size_t row, const Slice& col_slc) {
-#ifdef DEBUG
-    col_slc.check(cols);
-    if (row >= rows)
-        throw std::out_of_range("Matrix index out of range");
-#endif
-    Vector<T> temp(col_slc.end-col_slc.start);
-    size_t i{0};
-    for (auto val = this->row_begin(row)+col_slc.start; 
-              val != this->row_begin(row)+col_slc.end; ++val) {
-        temp[i++] = *val;
-    }
-    return temp;
-}
-
-template<typename T>
-Vector<T> Matrix<T>::operator()(const Slice& row_slc, size_t col) {
-#ifdef DEBUG
-    row_slc.check(rows);
-    if (col >= cols)
-        throw std::out_of_range("Matrix index out of range");
-#endif
-    Vector<T> temp(row_slc.end-row_slc.start);
-    size_t i{0};
-    for (auto val = this->col_begin(col)+row_slc.start; 
-              val != this->col_begin(col)+row_slc.end; ++val) {
-        temp[i++] = *val;
-    }
-    return temp;
-}
-
-template<typename T>
-Matrix<T> Matrix<T>::operator()(const Slice& row_slc, const Slice& col_slc) {
-#ifdef DEBUG
-    row_slc.check(rows);
-    col_slc.check(cols);
-#endif
-    Matrix<T> temp(row_slc.end-row_slc.start, col_slc.end-col_slc.start);
-    for (size_t i = 0; i < row_slc.end-row_slc.start; ++i) {
-        for (size_t j = 0; j < col_slc.end-col_slc.start; ++j) {
-            temp[i][j] = mat[(i+row_slc.start)*cols + j +col_slc.start];
-        }
-    }
-    return temp;
-}
-
-
-template<typename T>
 T* Matrix<T>::operator[](size_t row) {
     return &mat[row * cols];  
 }

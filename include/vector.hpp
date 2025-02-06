@@ -99,14 +99,26 @@ bool Vector<T>::operator!=(const Vector<T> &rhs) const {
 
 //Accessor operators
 template<typename T>
-T &Vector<T>::operator[](size_t index) {
-    return vec[index];
+T& Vector<T>::operator()(size_t idx) {
+    return vec.at(idx);
 }
 
 template<typename T>
-const T &Vector<T>::operator[](size_t index) const {
-    return vec[index];
+const T& Vector<T>::operator()(size_t idx) const {
+    return vec.at(idx);
 }
+
+template<typename T>
+T& Vector<T>::operator[](size_t idx) {
+    return vec[idx];
+}
+
+template<typename T>
+const T &Vector<T>::operator[](size_t idx) const {
+    return vec[idx];
+}
+
+
 
 //Overloaded insertion operator
 template<typename U>

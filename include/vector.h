@@ -2,6 +2,7 @@
 #define VECTOR_H
 
 #include "pch.h"
+#include "slice.h"
 
 template<typename T>
 class Vector {
@@ -38,8 +39,50 @@ public :
     bool operator!=(const Vector<T> &rhs) const;
 
     //Accessor operators
-    T& operator[](size_t index);
-    const T& operator[](size_t index) const;
+    class SliceProxy {
+    private:
+        Vector<T>& container;
+        Slice row_slc;
+
+    public:
+        SliceProxy(Vector<T>& cont, const Slice& row_slc)
+            : container(cont), row_slc(row_slc) {}
+
+        // 단일 값을 할당
+        SliceProxy& operator=(const T& value) {
+            for (size_t i = row_slc.start; i < row_slc.end; i += row_slc.step) {
+                container[i] = value;
+            }
+            return *this;
+        }
+
+        // 다른 벡터 값을 슬라이스에 할당
+        SliceProxy& operator=(const Vector<T>& rhs) {
+            size_t k = 0;
+            size_t expected_size = (row_slc.end - row_slc.start + row_slc.step - 1) / row_slc.step;
+            if (rhs.size() != expected_size) {
+                throw std::invalid_argument("Size mismatch between the slice and the assigned vector.");
+            }
+
+            for (size_t i = row_slc.start; i < row_slc.end; i += row_slc.step) {
+                container[i] = rhs[k++];
+            }
+            return *this;
+        }
+    };
+
+    T& operator()(size_t idx);
+    const T& operator()(size_t idx) const;
+
+    SliceProxy operator()(const Slice& slc) {
+    #ifdef DEBUG
+        slc.check(this->dim);
+    #endif
+        return SliceProxy(*this, slc);
+    }
+    
+    T& operator[](size_t idx);
+    const T& operator[](size_t idx) const;
 
     //Extraction & Insertion operators 
     template<typename U>

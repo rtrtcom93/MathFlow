@@ -37,7 +37,7 @@ public :
     //Move assignment
     Matrix<T> &operator=(Matrix<T> &&rhs);
     Matrix<T> &operator=(T scalar);
-    
+
     //In&Equality
     bool operator==(const Matrix<T> &rhs) const;
     bool operator!=(const Matrix<T> &rhs) const;
@@ -45,13 +45,139 @@ public :
     //Accessor operators
     T& operator()(size_t row, size_t col);
     const T& operator()(size_t row, size_t col) const;
-    Vector<T> operator()(size_t row, const Slice& col_slc);
-    Vector<T> operator()(const Slice& row_slc, size_t col);
-    Matrix<T> operator()(const Slice& row_slc, const Slice& col_slc);
+
+    class SliceProxy {
+    private:
+        Matrix<T>& mat_ref;
+        Slice row_slc;
+        Slice col_slc;
+        bool is_row_fixed = false;
+        bool is_col_fixed = false;
+        size_t fixed_index = 0;  // 고정된 행 또는 열의 인덱스
+
+    public:
+        // 행과 열 슬라이스에 대한 일반 생성자
+        SliceProxy(Matrix<T>& mat_ref, const Slice& row_slc, const Slice& col_slc)
+            : mat_ref(mat_ref), row_slc(row_slc), col_slc(col_slc) {}
+
+        // 행 고정에 대한 생성자
+        SliceProxy(Matrix<T>& mat_ref, size_t row, const Slice& col_slc)
+            : mat_ref(mat_ref), col_slc(col_slc), is_row_fixed(true), fixed_index(row) {}
+
+        // 열 고정에 대한 생성자
+        SliceProxy(Matrix<T>& mat_ref, const Slice& row_slc, size_t col)
+            : mat_ref(mat_ref), row_slc(row_slc), is_col_fixed(true), fixed_index(col) {}
+
+        // 단일 값을 할당
+        SliceProxy& operator=(const T& value) {
+            if (is_row_fixed) {
+                for (size_t j = col_slc.start; j < col_slc.end; j += col_slc.step) {
+                    mat_ref(fixed_index, j) = value;  // 고정된 행에서 열 슬라이스 할당
+                }
+            } else if (is_col_fixed) {
+                for (size_t i = row_slc.start; i < row_slc.end; i += row_slc.step) {
+                    mat_ref(i, fixed_index) = value;  // 고정된 열에서 행 슬라이스 할당
+                }
+            } else {
+                for (size_t i = row_slc.start; i < row_slc.end; i += row_slc.step) {
+                    for (size_t j = col_slc.start; j < col_slc.end; j += col_slc.step) {
+                        mat_ref(i, j) = value;
+                    }
+                }
+            }
+            return *this;
+        }
+
+        // 고정된 행 또는 열에 대해 벡터 값을 할당
+        SliceProxy& operator=(const Vector<T>& vec) {
+            if (is_row_fixed) {
+                // 크기 검증: 열 슬라이스의 크기와 벡터 크기가 일치해야 함
+                size_t expected_size = (col_slc.end - col_slc.start + col_slc.step - 1) / col_slc.step;
+                if (vec.size() != expected_size) {
+                    throw std::invalid_argument("Size mismatch between the column slice and the assigned vector.");
+                }
+
+                // 값 할당
+                size_t k = 0;
+                for (size_t j = col_slc.start; j < col_slc.end; j += col_slc.step) {
+                    mat_ref(fixed_index, j) = vec[k++];
+                }
+            } else if (is_col_fixed) {
+                // 크기 검증: 행 슬라이스의 크기와 벡터 크기가 일치해야 함
+                size_t expected_size = (row_slc.end - row_slc.start + row_slc.step - 1) / row_slc.step;
+                if (vec.size() != expected_size) {
+                    throw std::invalid_argument("Size mismatch between the row slice and the assigned vector.");
+                }
+
+                // 값 할당
+                size_t k = 0;
+                for (size_t i = row_slc.start; i < row_slc.end; i += row_slc.step) {
+                    mat_ref(i, fixed_index) = vec[k++];
+                }
+            } else {
+                throw std::logic_error("Vector assignment is only allowed when a row or column is fixed.");
+            }
+
+            return *this;
+        }
+
+        // 다른 행렬 값을 슬라이스에 할당
+        SliceProxy& operator=(const Matrix<T>& rhs) {
+            size_t row_count = (row_slc.end - row_slc.start + row_slc.step - 1) / row_slc.step;
+            size_t col_count = (col_slc.end - col_slc.start + col_slc.step - 1) / col_slc.step;
+
+            if (rhs.nrow() != row_count || rhs.ncol() != col_count) {
+                throw std::invalid_argument("Size mismatch between the slice and the assigned matrix.");
+            }
+
+            if (is_row_fixed) {
+                for (size_t j = 0, col = col_slc.start; col < col_slc.end; col += col_slc.step, ++j) {
+                    mat_ref(fixed_index, col) = rhs(0, j);  // 고정된 행에 대해 복사
+                }
+            } else if (is_col_fixed) {
+                for (size_t i = 0, row = row_slc.start; row < row_slc.end; row += row_slc.step, ++i) {
+                    mat_ref(row, fixed_index) = rhs(i, 0);  // 고정된 열에 대해 복사
+                }
+            } else {
+                for (size_t i = 0, row = row_slc.start; row < row_slc.end; row += row_slc.step, ++i) {
+                    for (size_t j = 0, col = col_slc.start; col < col_slc.end; col += col_slc.step, ++j) {
+                        mat_ref(row, col) = rhs(i, j);
+                    }
+                }
+            }
+            return *this;
+        }
+    };
+
+    SliceProxy operator()(const Slice& row_slc, size_t col) {
+    #ifdef DEBUG
+        row_slc.check(this->rows);
+        if (col >= this->cols)
+            throw std::out_of_range("Column index out of range");
+    #endif
+        return SliceProxy(*this, row_slc, col);
+    }
     
+    SliceProxy operator()(size_t row, const Slice& col_slc) {
+    #ifdef DEBUG
+        col_slc.check(this->cols);
+        if (row >= this->rows)
+            throw std::out_of_range("Row index out of range");
+    #endif
+        return SliceProxy(*this, row, col_slc);
+    }
+
+    SliceProxy operator()(const Slice& row_slc, const Slice& col_slc) {
+    #ifdef DEBUG
+        row_slc.check(this->rows);
+        col_slc.check(this->cols);
+    #endif
+        return SliceProxy(*this, row_slc, col_slc);
+    }
+
     T* operator[](size_t row);
     const T* operator[](size_t row) const;
-    
+   
     //Overloaded insertion operator
     template<typename U>
     friend std::ostream &operator<<(std::ostream &os, const Matrix<U> &rhs);
