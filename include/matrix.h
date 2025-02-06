@@ -2,6 +2,7 @@
 #define MATRIX_H
 
 #include "pch.h"
+#include "slice.h"
 #include "vector.h"
 
 template<typename T>
@@ -43,7 +44,11 @@ public :
 
     //Accessor operators
     T& operator()(size_t row, size_t col);
-    const T& operator()(size_t r, size_t c) const;
+    const T& operator()(size_t row, size_t col) const;
+    Vector<T> operator()(size_t row, const Slice& col_slc);
+    Vector<T> operator()(const Slice& row_slc, size_t col);
+    Matrix<T> operator()(const Slice& row_slc, const Slice& col_slc);
+    
     T* operator[](size_t row);
     const T* operator[](size_t row) const;
     
@@ -77,13 +82,13 @@ public :
     friend Matrix<U> operator*(U scalar, const Matrix<U> &rhs);
 
     //Vector-Matrix multiplication
-    Matrix<T> operator*(const Vector<T> &vec) const;
+    Vector<T> operator*(const Vector<T> &vec) const;
         //Commutativity
     template<typename U>
-    friend Matrix<U> operator*(const Vector<U> &lhs, const Matrix<U> &rhs);
+    friend Vector<U> operator*(const Vector<U> &lhs, const Matrix<U> &rhs);
         //Method
     template<typename U>
-    friend Matrix<U> matmul(const Vector<U> &lhs, const Matrix<U> &rhs);
+    friend Vector<U> matmul(const Vector<U> &lhs, const Matrix<U> &rhs);
     
     //Matrix-Matrix multiplication
     Matrix<T> operator*(const Matrix<T> &rhs) const;
@@ -116,9 +121,9 @@ public :
 
     class ColIterator {
     private:
-        Matrix<T>& mat_ref;  // Matrix 객체에 대한 참조
-        size_t col;               // 현재 열 번호
-        size_t row_idx;           // 현재 행 번호
+        Matrix<T>& mat_ref;       // Referencing Matrix Object 
+        size_t col;               // selected column
+        size_t row_idx;           // row index
 
     public:
         // ColIterator constructor
@@ -133,19 +138,19 @@ public :
         ColIterator(const ColIterator&& source) noexcept
             : mat_ref(source.mat_ref), col(source.col), row_idx(source.row_idx) {}
 
-        // Dereference 연산자 (*)
+        // Overloaded dereference operator(*)
         T& operator*() {
             return mat_ref.at(row_idx, col);
             // return mat_ref.at(row_idx, col);
         }
 
-        // += 연산자: 특정 거리만큼 이동
+        // += operator : Move forward with n
         ColIterator& operator+=(size_t n) {
             row_idx += n;
             return *this;
         }
 
-        // -= 연산자: 특정 거리만큼 뒤로 이동 (선택 사항)
+        // -= operator : Move backward with n
         ColIterator& operator-=(size_t n) {
             row_idx -= n;
             return *this;
@@ -167,14 +172,14 @@ public :
 
         // Pre-increment 연산자 (++iterator)
         ColIterator& operator++() {
-            ++row_idx;  // 다음 행으로 이동
+            ++row_idx;  // Move to next row
             return *this;
         }
 
         // Post-increment
         ColIterator operator++(int) {
             ColIterator temp(*this);
-            ++row_idx;  // 다음 행으로 이동
+            ++row_idx;  // Move to next row
             return temp;
         }
 
@@ -195,17 +200,14 @@ public :
             return row_idx >= other.row_idx;
         }
 
-        // 동등성 비교 연산자
+        /*Overloaded equality operators*/
         bool operator!=(const ColIterator& rhs) const {
             return row_idx != rhs.row_idx || col != rhs.col;
         }
 
-        // 동등성 확인 연산자
         bool operator==(const ColIterator& rhs) const {
             return !(*this != rhs);
         }
-
-
     };
 
     class ConstColIterator {
@@ -329,7 +331,7 @@ public :
 
     //Dynamical extension
     void push_back(const Vector<T>& vec, int axis);
-    void push_back(const Matrix<T>& vec, int axis);
+    void push_back(const Matrix<T>& rhs, int axis);
     void pop_back(int axis);
     void clear();
 

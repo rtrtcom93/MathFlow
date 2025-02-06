@@ -1,4 +1,5 @@
 #include "pch.h"
+#include "slice.h"
 #include "vector.h"
 #include "matrix.h"
 
@@ -11,35 +12,17 @@ int main(int argc, char** argv) {
     Vector<double> v2{2, 2, 2};
     Matrix<double> m3(2, 2, 0);
 
-    m1.shape();
-    cout << m1.trace() << endl;
-    cout << m1+m2 << endl;
-
-    cout << m3 << endl;
-
-    m3.push_back(v1, 0);
+    Slice col_slc(1, 3, 1);
+    Slice row_slc(1, 3, 1);
+    cout << m1 << endl;
     
-    cout << m3 << endl;
+    for (auto val = m1.row_begin(1)+1; val != m1.row_end(1); ++val) {
+        cout << *val;
+    }
+    cout << endl;
 
-    m3.push_back(v2, 1);
-    
-    cout << m3 << endl;
-
-
-    m3.push_back(m1, 0);
-
-    cout << m3 << endl;
-
-    m3.pop_back(0);
-
-    cout << m3 << endl;
-
-    m3.pop_back(1);
-
-    cout << m3 << endl;
-
-    m3.clear();
-
-    cout << m3 << endl;
+    cout << m1(1, col_slc) << endl;
+    cout << m1(row_slc, 1) << endl;
+    cout << m1(row_slc, col_slc) << endl;
     return 0;
 }
