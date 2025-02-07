@@ -5,9 +5,7 @@
 #include "matrix.h"
 #include "vector.h"
 
-
 Vector<double> linspace(double x0, double xn, size_t size);
-Vector<double> slice(const Vector<double> &vec, int m, int n);
 
 double norm(const Vector<double> &vec, std::string &&type);
 

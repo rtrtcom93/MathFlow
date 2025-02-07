@@ -41,17 +41,37 @@ public :
     //Accessor operators
     class SliceProxy {
     private:
-        Vector<T>& container;
-        Slice row_slc;
+        Vector<T>& vec_ref;
+        Slice slc;
 
     public:
-        SliceProxy(Vector<T>& cont, const Slice& row_slc)
-            : container(cont), row_slc(row_slc) {}
+        SliceProxy(Vector<T>& vec_ref, const Slice& slc)
+            : vec_ref(vec_ref), slc(slc) {}
+
+        operator Vector<T>() const {
+            size_t slice_size=0;
+            Vector<T> result;
+            size_t k = 0;
+            for (size_t i = slc.start; i < slc.end; i += slc.step) {
+                result[k++] =  vec_ref(i);
+            }
+            
+            return result;
+        }
+
+        friend std::ostream& operator<<(std::ostream& os, const SliceProxy& proxy) {
+            os << "[ ";
+            for (size_t i = proxy.slc.start; i < proxy.slc.end; i+= proxy.slc.step){
+                os << proxy.vec_ref(i) << " ";
+            }
+            os << "]";
+            return os;
+        }
 
         // 단일 값을 할당
         SliceProxy& operator=(const T& value) {
-            for (size_t i = row_slc.start; i < row_slc.end; i += row_slc.step) {
-                container[i] = value;
+            for (size_t i = slc.start; i < slc.end; i += slc.step) {
+                vec_ref[i] = value;
             }
             return *this;
         }
@@ -59,13 +79,13 @@ public :
         // 다른 벡터 값을 슬라이스에 할당
         SliceProxy& operator=(const Vector<T>& rhs) {
             size_t k = 0;
-            size_t expected_size = (row_slc.end - row_slc.start + row_slc.step - 1) / row_slc.step;
+            size_t expected_size = (slc.end - slc.start + slc.step - 1) / slc.step;
             if (rhs.size() != expected_size) {
                 throw std::invalid_argument("Size mismatch between the slice and the assigned vector.");
             }
 
-            for (size_t i = row_slc.start; i < row_slc.end; i += row_slc.step) {
-                container[i] = rhs[k++];
+            for (size_t i = slc.start; i < slc.end; i += slc.step) {
+                vec_ref[i] = rhs[k++];
             }
             return *this;
         }

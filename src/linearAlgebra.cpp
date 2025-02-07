@@ -19,23 +19,6 @@ Vector<double> linspace(double x0, double xn, size_t size)
     return temp;
 }
 
-Vector<double> slice(const Vector<double> &vec, int m, int n) {
-    int start = (m < 0) ? 0 : m;
-    int end   = (n > int(vec.size())) ? vec.size() : n;
-
-    if (start > end) {
-        return Vector<double> ();
-    }
-
-    Vector<double> temp(m - n);
-    for (size_t i = m; i < n; ++i) {
-        temp[i-m] = vec[i]; 
-    }
-
-    return temp;
-
-}
-
 double norm(const Vector<double> &vec, std::string &&type)
 {
     double temp{0};
@@ -67,16 +50,22 @@ Vector<double> TDMA(const Vector<double>& a, const Vector<double>& b, const Vect
     int n = d.size();
     Vector<double> c_star(n, 0.0), d_star(n, 0.0), x(n, 0.0);
 
-    //forward elimination
+    // 분모 0 체크
+    if (b[0] == 0.0) {
+        throw std::runtime_error("Division by zero: b[0] cannot be zero.");
+    }
+
+    // Forward elimination
     c_star[0] = c[0] / b[0];
     d_star[0] = d[0] / b[0];
+
     for (int i = 1; i < n; i++) {
         double m = 1.0 / (b[i] - a[i] * c_star[i - 1]);
         c_star[i] = c[i] * m;
         d_star[i] = (d[i] - a[i] * d_star[i - 1]) * m;
     }
 
-    //backward substitution
+    // Backward substitution
     x[n - 1] = d_star[n - 1];
     for (int i = n - 2; i >= 0; i--) {
         x[i] = d_star[i] - c_star[i] * x[i + 1];
@@ -187,24 +176,3 @@ Vector<double> TDMA(const Vector<double>& a, const Vector<double>& b, const Vect
 //     }
 // }
 
-Vector<double> TDMA(const Vector<double>& a, const Vector<double>& b, const Vector<double>& c, const Vector<double>& d) {
-    int n = d.size();
-    Vector<double> c_star(n, 0.0), d_star(n, 0.0), x(n, 0.0);
-
-    //forward elimination
-    c_star[0] = c[0] / b[0];
-    d_star[0] = d[0] / b[0];
-    for (int i = 1; i < n; i++) {
-        double m = 1.0 / (b[i] - a[i] * c_star[i - 1]);
-        c_star[i] = c[i] * m;
-        d_star[i] = (d[i] - a[i] * d_star[i - 1]) * m;
-    }
-
-    //backward substitution
-    x[n - 1] = d_star[n - 1];
-    for (int i = n - 2; i >= 0; i--) {
-        x[i] = d_star[i] - c_star[i] * x[i + 1];
-    }
-
-    return x;
-}

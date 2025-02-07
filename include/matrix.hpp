@@ -494,6 +494,36 @@ typename std::vector<T>::const_iterator Matrix<T>::row_end(size_t row) const {
 
 //Dynamical extension
 template<typename T>
+void Matrix<T>::push_back(int axis) {
+    if (axis == 0) { //Push back row-vector
+        if (this->cols == 0 && this->rows == 0) {
+            std::cout << "Empty matrix" << std::endl;
+        } else {
+            this->mat.reserve(this->size()+this->nrow());
+            for (size_t i = 0; i < this->nrow(); ++i) 
+                mat.push_back(0);
+            rows++;
+        }
+    } else if (axis == 1) {
+        if (this->cols == 0 && this->rows == 0) {
+            std::cout << "Empty matrix" << std::endl;
+        } else {    
+            Vector<T> temp(rows*(cols + 1));
+            for (size_t i = 0; i < rows; ++i) {
+                for (size_t j = 0; j < cols; ++j) {
+                    temp[i*(cols + 1) + j] = mat[i*cols + j];
+                }
+            }
+            mat = std::move(temp);
+            cols++;
+        }
+    } else {
+        throw std::invalid_argument("Axis must be 0 (row) or 1 (column).");
+    }
+}
+
+
+template<typename T>
 void Matrix<T>::push_back(const Vector<T>& vec, int axis) {
     if (axis == 0) { //Push back row-vector
         if (this->cols == 0 && this->rows == 0) {
